@@ -141,7 +141,23 @@ h1 {
 
 # ---------------- UI ----------------
 st.title("🚫 Cyberbullying Detection System")
-st.write("                Analyze comments using Machine Learning (Random Forest)")
+st.write("Analyze comments using Machine Learning (Random Forest)")
+st.markdown("""
+<div style="
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 14px 20px;
+    border-radius: 15px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #00f2fe;
+    text-shadow: 0 0 12px #00f2fe;
+">
+⚡ Analyze comments using Machine Learning (Random Forest)
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------- FILE CHECK ----------------
 if not MODEL_PATH.exists() or not VECTORIZER_PATH.exists():
