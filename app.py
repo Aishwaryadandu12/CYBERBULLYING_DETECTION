@@ -141,7 +141,7 @@ h1 {
 
 # ---------------- UI ----------------
 st.title("🚫 Cyberbullying Detection System")
-st.write("Analyze comments using Machine Learning (Random Forest)")
+st.write("                Analyze comments using Machine Learning (Random Forest)")
 
 # ---------------- FILE CHECK ----------------
 if not MODEL_PATH.exists() or not VECTORIZER_PATH.exists():
