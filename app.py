@@ -188,9 +188,9 @@ if st.button("🔍 Analyze"):
 
 # ---------------- EXAMPLES ----------------
 st.markdown("""
-💡 Try these examples:
+<span style="color:#00f2fe; font-weight:bold;">💡 Try these examples:</span><br><br>
 
-✔ You did a great job!  
-⚠ You are dumb  
-⚠ You are stupid  
-""")
+<span style="color:#7ee8fa;">✔ You did a great job!</span><br>
+<span style="color:#c3f584;">⚠ You are dumb</span><br>
+<span style="color:#ff6b6b;">⚠ You are Stupid</span>
+""", unsafe_allow_html=True)
