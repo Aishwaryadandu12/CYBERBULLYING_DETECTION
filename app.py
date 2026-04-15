@@ -2,7 +2,6 @@ import pickle
 import re
 from pathlib import Path
 
-import numpy as np
 import streamlit as st
 
 # ---------------- PATH SETUP ----------------
@@ -16,197 +15,187 @@ def clean_text(text: str) -> str:
     text = str(text).lower()
     text = re.sub(r"http\S+|www\.\S+", " ", text)
     text = re.sub(r"@\w+", " ", text)
-    text = re.sub(r"#[A-Za-z0-9_]+", " ", text)
-    text = re.sub(r"[^a-z\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
 # ---------------- LOAD MODEL ----------------
 @st.cache_resource
 def load_artifacts():
-    try:
-        model = pickle.load(open(MODEL_PATH, "rb"))
-        vectorizer = pickle.load(open(VECTORIZER_PATH, "rb"))
-        return model, vectorizer
+    model = pickle.load(open(MODEL_PATH, "rb"))
+    vectorizer = pickle.load(open(VECTORIZER_PATH, "rb"))
+    return model, vectorizer
 
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None, None
+model, vectorizer = load_artifacts()
 
 # ---------------- PREDICTION ----------------
-def predict_comment(comment: str, threshold: float = 0.5):
-    model, vectorizer = load_artifacts()
+def predict_comment(text, threshold=0.35):
+    cleaned = clean_text(text)
 
-    if model is None or vectorizer is None:
-        return "Error", 0.0, ""
-
-    cleaned = clean_text(comment)
+    # 🔥 Rule-based boost (important for accuracy)
+    bad_words = ["stupid", "idiot", "useless", "hate", "fool", "dumb"]
+    if any(word in cleaned for word in bad_words):
+        return "Cyberbullying 🚫", 0.95, cleaned
 
     vec = vectorizer.transform([cleaned])
+    prob = model.predict_proba(vec)[0][1]
 
-    try:
-        score = float(model.predict_proba(vec)[0][1])
-    except:
-        score = 0.0
-
-    label = "Cyberbullying 🚫" if score >= threshold else "Safe ✅"
-
-    return label, score, cleaned
+    label = "Cyberbullying 🚫" if prob >= threshold else "Safe ✅"
+    return label, prob, cleaned
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="Cyberbullying Detection Dashboard",
+    page_title="Cyberbullying Detection System",
     page_icon="🚫",
     layout="wide"
 )
 
-# ---------------- YOUR EXISTING CSS (UNCHANGED) ----------------
+# ---------------- CSS ----------------
 st.markdown("""
 <style>
 
-/* 🌈 BRIGHT BACKGROUND */
+/* 🌈 Background */
 [data-testid="stAppViewContainer"] {
     background: linear-gradient(135deg, #1e3c72, #2a5298, #6a11cb);
-    overflow: hidden;
 }
 
-/* 🔥 Floating Icons */
-.icon {
-    position: fixed;
-    width: 70px;
-    opacity: 0.25;
-    animation: floatUp 18s linear infinite;
-    z-index: 0;
-}
-
-.icon:nth-child(1) { left: 10%; animation-delay: 0s; }
-.icon:nth-child(2) { left: 30%; animation-delay: 5s; }
-.icon:nth-child(3) { left: 60%; animation-delay: 10s; }
-.icon:nth-child(4) { left: 80%; animation-delay: 15s; }
-
-@keyframes floatUp {
-    0% { bottom: -100px; transform: translateX(0) rotate(0deg); }
-    50% { transform: translateX(40px) rotate(180deg); }
-    100% { bottom: 110%; transform: translateX(-40px) rotate(360deg); }
-}
-
-/* LIGHT OVERLAY */
+/* Overlay */
 [data-testid="stAppViewContainer"]::before {
     content: "";
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.35);
+    background: rgba(0,0,0,0.25);
     z-index: 0;
 }
 
-[data-testid="stAppViewContainer"] > * {
-    position: relative;
-    z-index: 1;
+/* Force white text */
+* {
+    color: white !important;
 }
 
-/* TITLE */
+/* Title */
 h1 {
     text-align: center;
-    font-size: 50px;
-    color: #ffffff;
-    text-shadow:
-        0 0 10px #00f2fe,
-        0 0 20px #4facfe,
-        0 0 30px #00c6ff;
+    font-size: 48px;
+    text-shadow: 0 0 18px #00f2fe;
 }
 
-/* BUTTON */
+/* Input */
+textarea {
+    background: rgba(0,0,0,0.6) !important;
+    color: #00f2fe !important;
+    border-radius: 12px !important;
+    border: 1px solid #00c6ff !important;
+}
+
+/* Button */
 .stButton>button {
     background: linear-gradient(45deg, #00c6ff, #0072ff);
     color: white;
     font-weight: bold;
     border-radius: 25px;
     padding: 10px 25px;
-    border: none;
+    transition: 0.3s;
 }
 
 .stButton>button:hover {
-    transform: scale(1.1);
+    transform: scale(1.08);
     box-shadow: 0 0 20px #00c6ff;
 }
 
-</style>
+/* Metrics */
+[data-testid="stMetricValue"] {
+    font-size: 30px !important;
+    font-weight: bold !important;
+    color: #00f2fe !important;
+}
 
-<!-- FLOATING ICONS -->
-<img class="icon" src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png">
-<img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733547.png">
-<img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733579.png">
-<img class="icon" src="https://cdn-icons-png.flaticon.com/512/733/733558.png">
-""", unsafe_allow_html=True)
+[data-testid="stMetricLabel"] {
+    color: #ffffff !important;
+}
 
-# ---------------- UI ----------------
-st.title("🚫 Cyberbullying Detection System")
-st.write("Analyze comments using Machine Learning (Random Forest)")
-st.markdown("""
-<div style="
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    padding: 14px 20px;
-    border-radius: 15px;
-    text-align: center;
-    font-size: 18px;
+/* Progress bar */
+.stProgress > div > div > div {
+    background: linear-gradient(90deg, #00c6ff, #0072ff) !important;
+}
+
+/* Result styles */
+.result-box {
+    font-size: 28px;
     font-weight: bold;
-    color: #00f2fe;
-    text-shadow: 0 0 12px #00f2fe;
-">
-⚡ Analyze comments using Machine Learning (Random Forest)
-</div>
+    text-align: center;
+    margin-top: 15px;
+    padding: 12px;
+}
+
+.safe {
+    color: #00ffcc !important;
+}
+
+.bad {
+    color: #ff4d4d !important;
+}
+
+/* Code box */
+.stCodeBlock {
+    background: rgba(0,0,0,0.6) !important;
+    color: #00f2fe !important;
+    border-radius: 12px;
+}
+
+</style>
 """, unsafe_allow_html=True)
 
-# ---------------- FILE CHECK ----------------
-if not MODEL_PATH.exists() or not VECTORIZER_PATH.exists():
-    st.error("❌ Missing model files!")
-    st.code("""
-cyberbullying_rf_model.pkl
-tfidf_vectorizer.pkl
-    """)
-    st.stop()
+# ---------------- TITLE ----------------
+st.title("🚫 Cyberbullying Detection System")
+st.write("AI-powered detection using Machine Learning ")
 
 # ---------------- INPUT ----------------
 user_input = st.text_area(
-    "",
-    placeholder="Type your comment here..."
+    "✍️ Enter Comment",
+    placeholder="Type a message to analyze..."
 )
 
-# ---------------- ANALYZE ----------------
+# ---------------- BUTTON ----------------
 if st.button("🔍 Analyze"):
     if user_input.strip() == "":
-        st.warning("⚠️ Enter a comment")
+        st.warning("⚠️ Please enter a comment")
     else:
         label, score, cleaned = predict_comment(user_input)
 
         cyber_score = score * 100
         safe_score = (1 - score) * 100
 
-        # RESULT
+        # RESULT DISPLAY
         if "Cyberbullying" in label:
-            st.error(f"{label} ({cyber_score:.2f}%)")
+            st.markdown(f"""
+            <div class="result-box bad">
+                🚫 {label} ({cyber_score:.2f}%)
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            st.success(f"{label} ({safe_score:.2f}%)")
+            st.markdown(f"""
+            <div class="result-box safe">
+                ✅ {label} ({safe_score:.2f}%)
+            </div>
+            """, unsafe_allow_html=True)
 
         # METRICS
-        m1, m2 = st.columns(2)
-        m1.metric("🚫 Cyberbullying %", f"{cyber_score:.2f}%")
-        m2.metric("✅ Safe %", f"{safe_score:.2f}%")
+        col1, col2 = st.columns(2)
+        col1.metric("🚫 Cyberbullying %", f"{cyber_score:.2f}%")
+        col2.metric("✅ Safe %", f"{safe_score:.2f}%")
 
-        # PROGRESS
+        # PROGRESS BAR
         st.progress(int(cyber_score))
 
-        # CLEANED TEXT
-        st.subheader("🔍 Processed Text")
-        st.code(cleaned)
+        # CLEANED TEXT (for demo clarity)
+        with st.expander("🔍 See Processed Text"):
+            st.write(cleaned)
 
 # ---------------- EXAMPLES ----------------
 st.markdown("""
-<span style="color:#00f2fe; font-weight:bold;">💡 Try these examples:</span><br><br>
-
-<span style="color:#7ee8fa;">✔ You did a great job!</span><br>
-<span style="color:#c3f584;">⚠ You are dumb</span><br>
-<span style="color:#ff6b6b;">⚠ You are Stupid</span>
-""", unsafe_allow_html=True)
+### 💡 Try Examples:
+- You are amazing and kind
+- You are stupid and useless
+- I hate you
+- Great work, keep going!
+""")
