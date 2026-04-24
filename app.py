@@ -31,7 +31,7 @@ model, vectorizer = load_artifacts()
 def predict_comment(text, threshold=0.35):
     cleaned = clean_text(text)
 
-    # Rule-based boost
+    # 🔥 Rule-based boost (important for accuracy)
     bad_words = ["stupid", "idiot", "useless", "hate", "fool", "dumb"]
     if any(word in cleaned for word in bad_words):
         return "Cyberbullying 🚫", 0.95, cleaned
@@ -49,47 +49,28 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- CSS (UPDATED) ----------------
+# ---------------- CSS ----------------
 st.markdown("""
 <style>
 
-/* 🌈 Gradient Background */
+/* 🌈 Background */
 [data-testid="stAppViewContainer"] {
     background: linear-gradient(135deg, #1e3c72, #2a5298, #6a11cb);
-    overflow: hidden;
 }
 
-/* 🌐 Animated Social Media Icons */
-[data-testid="stAppViewContainer"]::after {
-    content: "💬 📱 👍 ❤️ 🔁 📨 💻 🌐 📢 🧠";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 200%;
-    height: 200%;
-    font-size: 40px;
-    opacity: 0.08;
-    animation: floatIcons 25s linear infinite;
-    white-space: nowrap;
-}
-
-/* Animation */
-@keyframes floatIcons {
-    0% { transform: translate(0,0); }
-    50% { transform: translate(-200px,-200px); }
-    100% { transform: translate(0,0); }
-}
-
-/* Dark overlay */
+/* Overlay */
 [data-testid="stAppViewContainer"]::before {
     content: "";
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.25);
+    z-index: 0;
 }
 
 /* Force white text */
-* { color: white !important; }
+* {
+    color: white !important;
+}
 
 /* Title */
 h1 {
@@ -98,7 +79,7 @@ h1 {
     text-shadow: 0 0 18px #00f2fe;
 }
 
-/* Input box */
+/* Input */
 textarea {
     background: rgba(0,0,0,0.6) !important;
     color: #00f2fe !important;
@@ -115,6 +96,7 @@ textarea {
     padding: 10px 25px;
     transition: 0.3s;
 }
+
 .stButton>button:hover {
     transform: scale(1.08);
     box-shadow: 0 0 20px #00c6ff;
@@ -125,6 +107,10 @@ textarea {
     font-size: 30px !important;
     font-weight: bold !important;
     color: #00f2fe !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #ffffff !important;
 }
 
 /* Progress bar */
@@ -140,8 +126,21 @@ textarea {
     margin-top: 15px;
     padding: 12px;
 }
-.safe { color: #00ffcc !important; }
-.bad { color: #ff4d4d !important; }
+
+.safe {
+    color: #00ffcc !important;
+}
+
+.bad {
+    color: #ff4d4d !important;
+}
+
+/* Code box */
+.stCodeBlock {
+    background: rgba(0,0,0,0.6) !important;
+    color: #00f2fe !important;
+    border-radius: 12px;
+}
 
 </style>
 """, unsafe_allow_html=True)
@@ -166,7 +165,7 @@ if st.button("🔍 Analyze"):
         cyber_score = score * 100
         safe_score = (1 - score) * 100
 
-        # RESULT
+        # RESULT DISPLAY
         if "Cyberbullying" in label:
             st.markdown(f"""
             <div class="result-box bad">
@@ -188,7 +187,7 @@ if st.button("🔍 Analyze"):
         # PROGRESS BAR
         st.progress(int(cyber_score))
 
-        # CLEANED TEXT
+        # CLEANED TEXT (for demo clarity)
         with st.expander("🔍 See Processed Text"):
             st.write(cleaned)
 
