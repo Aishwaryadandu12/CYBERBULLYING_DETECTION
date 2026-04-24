@@ -46,7 +46,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- CSS ----------------
+# ---------------- CSS (FIXED) ----------------
 st.markdown("""
 <style>
 
@@ -80,8 +80,10 @@ st.markdown("""
     background: rgba(0,0,0,0.25);
 }
 
-/* White text */
-* { color: white !important; }
+/* ✅ SAFE TEXT COLOR (NO *) */
+body, p, h1, h2, h3, h4, h5, h6, label, div, span {
+    color: white !important;
+}
 
 /* Title */
 h1 {
@@ -90,12 +92,13 @@ h1 {
     text-shadow: 0 0 18px #00f2fe;
 }
 
-/* Input */
+/* ✅ FIXED TEXTAREA */
 textarea {
     background: rgba(0,0,0,0.6) !important;
     color: #00f2fe !important;
     border-radius: 12px !important;
     border: 1px solid #00c6ff !important;
+    caret-color: #00f2fe !important;
 }
 
 /* Button */
@@ -116,7 +119,7 @@ textarea {
     border-radius: 12px;
 }
 
-/* Layout inside result */
+/* Layout */
 .result-content {
     display: flex;
     align-items: center;
@@ -138,12 +141,12 @@ textarea {
 
 /* 🔴 Blinking animation */
 @keyframes blinkAlert {
-    0%   { box-shadow: 0 0 10px #ff0000; opacity: 1; }
-    50%  { box-shadow: 0 0 25px #ff4d4d; opacity: 0.85; }
-    100% { box-shadow: 0 0 10px #ff0000; opacity: 1; }
+    0%   { box-shadow: 0 0 10px #ff0000; }
+    50%  { box-shadow: 0 0 25px #ff4d4d; }
+    100% { box-shadow: 0 0 10px #ff0000; }
 }
 
-/* Pulse text */
+/* Pulse */
 @keyframes pulseText {
     0% { transform: scale(1); }
     50% { transform: scale(1.08); }
@@ -152,13 +155,13 @@ textarea {
 
 /* Safe */
 .safe {
-    background-color: rgba(0, 255, 150, 0.2) !important;
+    background-color: rgba(0, 255, 150, 0.2);
     border: 2px solid #00ffcc;
 }
 
-/* Cyberbullying (animated) */
+/* Cyberbullying */
 .bad {
-    background-color: rgba(255, 0, 0, 0.25) !important;
+    background-color: rgba(255, 0, 0, 0.25);
     border: 2px solid #ff4d4d;
     animation: blinkAlert 1s infinite;
 }
@@ -171,14 +174,12 @@ textarea {
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- TITLE ----------------
+# ---------------- UI ----------------
 st.title("🚫 Cyberbullying Detection System")
 st.write("AI-powered detection using Machine Learning (Random Forest + TF-IDF)")
 
-# ---------------- INPUT ----------------
 user_input = st.text_area("✍️ Enter Comment")
 
-# ---------------- BUTTON ----------------
 if st.button("🔍 Analyze"):
     if user_input.strip() == "":
         st.warning("⚠️ Please enter a comment")
@@ -188,7 +189,6 @@ if st.button("🔍 Analyze"):
         cyber_score = score * 100
         safe_score = (1 - score) * 100
 
-        # RESULT DISPLAY
         if "Cyberbullying" in label:
             st.markdown(f"""
             <div class="result-box bad">
@@ -212,15 +212,12 @@ if st.button("🔍 Analyze"):
             </div>
             """, unsafe_allow_html=True)
 
-        # METRICS
         col1, col2 = st.columns(2)
         col1.metric("🚫 Cyberbullying %", f"{cyber_score:.2f}%")
         col2.metric("✅ Safe %", f"{safe_score:.2f}%")
 
-        # PROGRESS BAR
         st.progress(int(cyber_score))
 
-        # CLEANED TEXT
         with st.expander("🔍 See Processed Text"):
             st.write(cleaned)
 
