@@ -53,7 +53,6 @@ st.markdown("""
 /* 🌈 Background */
 [data-testid="stAppViewContainer"] {
     background: linear-gradient(135deg, #1e3c72, #2a5298, #6a11cb);
-    overflow: hidden;
 }
 
 /* Floating icons */
@@ -67,7 +66,6 @@ st.markdown("""
     animation: floatIcons 25s linear infinite;
 }
 
-/* Animation */
 @keyframes floatIcons {
     0% { transform: translate(0,0); }
     50% { transform: translate(-200px,-200px); }
@@ -138,16 +136,36 @@ textarea {
     font-weight: bold;
 }
 
+/* 🔴 Blinking animation */
+@keyframes blinkAlert {
+    0%   { box-shadow: 0 0 10px #ff0000; opacity: 1; }
+    50%  { box-shadow: 0 0 25px #ff4d4d; opacity: 0.85; }
+    100% { box-shadow: 0 0 10px #ff0000; opacity: 1; }
+}
+
+/* Pulse text */
+@keyframes pulseText {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
 /* Safe */
 .safe {
     background-color: rgba(0, 255, 150, 0.2) !important;
     border: 2px solid #00ffcc;
 }
 
-/* Cyberbullying */
+/* Cyberbullying (animated) */
 .bad {
     background-color: rgba(255, 0, 0, 0.25) !important;
     border: 2px solid #ff4d4d;
+    animation: blinkAlert 1s infinite;
+}
+
+.bad .result-icon,
+.bad .result-text {
+    animation: pulseText 1s infinite;
 }
 
 </style>
@@ -170,7 +188,7 @@ if st.button("🔍 Analyze"):
         cyber_score = score * 100
         safe_score = (1 - score) * 100
 
-        # RESULT DISPLAY WITH ICONS
+        # RESULT DISPLAY
         if "Cyberbullying" in label:
             st.markdown(f"""
             <div class="result-box bad">
@@ -199,7 +217,7 @@ if st.button("🔍 Analyze"):
         col1.metric("🚫 Cyberbullying %", f"{cyber_score:.2f}%")
         col2.metric("✅ Safe %", f"{safe_score:.2f}%")
 
-        # PROGRESS
+        # PROGRESS BAR
         st.progress(int(cyber_score))
 
         # CLEANED TEXT
