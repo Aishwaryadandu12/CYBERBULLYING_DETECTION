@@ -1,7 +1,6 @@
 import pickle
 import re
 from pathlib import Path
-
 import streamlit as st
 
 # ---------------- PATH SETUP ----------------
@@ -31,7 +30,6 @@ model, vectorizer = load_artifacts()
 def predict_comment(text, threshold=0.35):
     cleaned = clean_text(text)
 
-    # 🔥 Rule-based boost (important for accuracy)
     bad_words = ["stupid", "idiot", "useless", "hate", "fool", "dumb"]
     if any(word in cleaned for word in bad_words):
         return "Cyberbullying 🚫", 0.95, cleaned
@@ -49,26 +47,61 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------- CSS ----------------
+# ---------------- DEFAULT CSS ----------------
 st.markdown("""
 <style>
 
-/* 🌈 Background */
+/* Default gradient before prediction */
 [data-testid="stAppViewContainer"] {
     background: linear-gradient(135deg, #1e3c72, #2a5298, #6a11cb);
+    transition: background 0.5s ease-in-out;
 }
 
-/* Overlay */
-[data-testid="stAppViewContainer"]::before {
-    content: "";
+/* Gradient animation */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+            
+/* 🔥 ICON BACKGROUND (force visible) */
+.icon-bg {
     position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.25);
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    font-size: 42px;
+    opacity: 0.25;   /* HIGH visibility */
     z-index: 0;
+    pointer-events: none;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 25px;
+    padding: 20px;
+    animation: floatIcons 20s linear infinite;
+}
+/* Animation */
+@keyframes floatIcons {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-40px); }
+    100% { transform: translateY(0px); }
+}
+/* 🔥 FORCE APP ABOVE ICONS */
+.block-container {
+    position: relative;
+    z-index: 2;
+}
+/* Glass UI */
+.main {
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(10px);
+    padding: 30px;
+    border-radius: 18px;
 }
 
-/* Force white text */
-* {
+/* Text color fix */
+body, p, h1, h2, h3, h4, h5, h6, label, div, span {
     color: white !important;
 }
 
@@ -85,64 +118,83 @@ textarea {
     color: #00f2fe !important;
     border-radius: 12px !important;
     border: 1px solid #00c6ff !important;
+    caret-color: #00f2fe !important;
 }
 
 /* Button */
 .stButton>button {
     background: linear-gradient(45deg, #00c6ff, #0072ff);
-    color: white;
-    font-weight: bold;
     border-radius: 25px;
     padding: 10px 25px;
-    transition: 0.3s;
 }
-
 .stButton>button:hover {
     transform: scale(1.08);
     box-shadow: 0 0 20px #00c6ff;
 }
-
-/* Metrics */
-[data-testid="stMetricValue"] {
-    font-size: 30px !important;
-    font-weight: bold !important;
-    color: #00f2fe !important;
+/* 🔥 RANDOM FLOATING ICONS */
+.icon-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
 }
 
-[data-testid="stMetricLabel"] {
-    color: #ffffff !important;
+/* each icon random style */
+.icon {
+    position: absolute;
+    font-size: 40px;
+    opacity: 0.7;
+
+    animation: floatRandom 6s ease-in-out infinite,
+               glowPulse 2s ease-in-out infinite alternate;
+
+    text-shadow:
+        0 0 5px #00f2fe,
+        0 0 10px #00f2fe,
+        0 0 20px #00f2fe,
+        0 0 40px #0072ff;
 }
 
-/* Progress bar */
-.stProgress > div > div > div {
-    background: linear-gradient(90deg, #00c6ff, #0072ff) !important;
+/* floating animation */
+@keyframes floatRandom {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
 }
 
-/* Result styles */
-.result-box {
-    font-size: 28px;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 15px;
-    padding: 12px;
+/* glow */
+@keyframes glowPulse {
+    from { opacity: 0.4; }
+    to { opacity: 1; }
 }
-
-.safe {
-    color: #00ffcc !important;
-}
-
-.bad {
-    color: #ff4d4d !important;
-}
-
-/* Code box */
-.stCodeBlock {
-    background: rgba(0,0,0,0.6) !important;
-    color: #00f2fe !important;
-    border-radius: 12px;
-}
-
 </style>
+""", unsafe_allow_html=True)
+
+# 🔥 ICON BACKGROUND (FULL COVERAGE)
+st.markdown("""
+<div class="icon-bg">
+
+<span class="icon" style="top:5%; left:10%;">📱</span>
+<span class="icon" style="top:20%; left:80%;">💬</span>
+<span class="icon" style="top:40%; left:30%;">❤️</span>
+<span class="icon" style="top:70%; left:60%;">👍</span>
+<span class="icon" style="top:85%; left:15%;">🔁</span>
+<span class="icon" style="top:60%; left:85%;">📨</span>
+<span class="icon" style="top:15%; left:50%;">🌐</span>
+<span class="icon" style="top:35%; left:70%;">📢</span>
+<span class="icon" style="top:55%; left:25%;">💻</span>
+<span class="icon" style="top:75%; left:45%;">📸</span>
+<span class="icon" style="top:10%; left:75%;">📲</span>
+<span class="icon" style="top:90%; left:35%;">🔔</span>
+
+<span class="icon" style="top:25%; left:5%;">💬</span>
+<span class="icon" style="top:50%; left:50%;">❤️</span>
+<span class="icon" style="top:65%; left:10%;">👍</span>
+<span class="icon" style="top:80%; left:80%;">📱</span>
+<span class="icon" style="top:30%; left:60%;">📢</span>
+<span class="icon" style="top:45%; left:15%;">💻</span>
+
+</div>
 """, unsafe_allow_html=True)
 
 # ---------------- TITLE ----------------
@@ -150,10 +202,7 @@ st.title("🚫 Cyberbullying Detection System")
 st.write("AI-powered detection using Machine Learning (Random Forest + TF-IDF)")
 
 # ---------------- INPUT ----------------
-user_input = st.text_area(
-    "✍️ Enter Comment",
-    placeholder="Type a message to analyze..."
-)
+user_input = st.text_area("✍️ Enter Comment")
 
 # ---------------- BUTTON ----------------
 if st.button("🔍 Analyze"):
@@ -165,37 +214,47 @@ if st.button("🔍 Analyze"):
         cyber_score = score * 100
         safe_score = (1 - score) * 100
 
-        # RESULT DISPLAY
+        # 🔥 FULL PAGE BACKGROUND CHANGE
         if "Cyberbullying" in label:
-            st.markdown(f"""
-            <div class="result-box bad">
-                🚫 {label} ({cyber_score:.2f}%)
-            </div>
+            st.markdown("""
+            <style>
+            [data-testid="stAppViewContainer"] {
+                background: linear-gradient(135deg, #3b0000, #8b0000, #ff0000) !important;
+            }
+            </style>
             """, unsafe_allow_html=True)
         else:
-            st.markdown(f"""
-            <div class="result-box safe">
-                ✅ {label} ({safe_score:.2f}%)
-            </div>
+            st.markdown("""
+            <style>
+            [data-testid="stAppViewContainer"] {
+                background: linear-gradient(135deg, #003b1f, #007f3f, #00ff88) !important;
+            }
+            </style>
             """, unsafe_allow_html=True)
+
+        # RESULT TEXT
+        if "Cyberbullying" in label:
+            st.error(f"🚫 Cyberbullying ({cyber_score:.2f}%)")
+        else:
+            st.success(f"✅ Safe ({safe_score:.2f}%)")
 
         # METRICS
         col1, col2 = st.columns(2)
         col1.metric("🚫 Cyberbullying %", f"{cyber_score:.2f}%")
         col2.metric("✅ Safe %", f"{safe_score:.2f}%")
 
-        # PROGRESS BAR
+        # PROGRESS
         st.progress(int(cyber_score))
 
-        # CLEANED TEXT (for demo clarity)
+        # CLEANED TEXT
         with st.expander("🔍 See Processed Text"):
             st.write(cleaned)
 
 # ---------------- EXAMPLES ----------------
 st.markdown("""
 ### 💡 Try Examples:
-- You are amazing and kind
-- You are stupid and useless
-- I hate you
+- You are amazing and kind  
+- You are stupid and useless  
+- I hate you  
 - Great work, keep going!
 """)
